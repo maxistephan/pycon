@@ -31,12 +31,26 @@ To get to know about the CLI usage, type this command after installation:
 pycon --help
 ```
 
+## Testing
+
+
+
 ## Important Notice
 
 This Project is set to be in a private repository.
 Leaks about source code snippets are completely irrelevant.
 The only important part is to keep the **Bot Token** secure,
 since the Token is used to control the Bot.
+
+## Developer Info
+
+This project setup to be developed with the VSCode IDE.
+Using Pycharm or other IDEs is, of course, also allowed,
+if the necessary entries to the *.gitignore* file are added.
+
+Make sure to use conventional commits in commit messages!
+
+Testing is done via docker, to assure that test results are valid.
 
 Have fun creating this Bot with me!
 

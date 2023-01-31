@@ -11,4 +11,4 @@ services:
     working_dir: "${PYCON_WORKING_DIR:-/host/pycon}"
     volumes:
       - ./../:/host/pycon:rw
-    user: "${UID}:${GID}"
+    user: "${USER_ID}:${GROUP_ID}"
