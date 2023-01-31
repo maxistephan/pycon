@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  pycon-env:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${PYCON_DOCKER_IMAGE_NAME:-pycon:local}
+    network_mode: host
+    privileged: true
+    working_dir: "${PYCON_WORKING_DIR:-/host/pycon}"
+    volumes:
+      - ./../:/host/pycon:rw
+    user: "${UID}:${GID}"
