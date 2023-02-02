@@ -33,7 +33,27 @@ pycon --help
 
 ## Testing
 
+Running tests is as easy as using the project itself:
 
+```bash
+./run.sh --test
+```
+
+To use the docker environment in tests, append the *--docker* option:
+
+```bash
+./run.sh --test --docker
+```
+
+And to use a specific user in the Docker test environment, the *-g* and *-u* options may help:
+
+```bash
+./run.sh --docker -u $(id -u) -g $(id -g) --test
+```
+
+**NOTE:** By default, the user ID and Group are the ones from the user starting the script.
+
+**NOTE:** There are currently no tests implemented!
 
 ## Important Notice
 

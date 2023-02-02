@@ -31,6 +31,7 @@ function print_help() {
 }
 
 DOCKER_ARGS=
+BOT_ARGS=
 
 while [ $# -gt 0 ]; do
     case $1 in
@@ -49,6 +50,11 @@ while [ $# -gt 0 ]; do
             ;;
         --test)
             RUN_TESTS="1"
+            DOCKER_ARGS+=" $1"
+            shift
+            ;;
+        --run-bot)
+            RUN_BOT="1"
             DOCKER_ARGS+=" $1"
             shift
             ;;
@@ -80,5 +86,9 @@ fi
 
 if [ -n "${RUN_TESTS}" ]; then
     echo "No testing environment implemented yet!"
-    exit 1
+fi
+
+if [ -n "${RUN_BOT}" ]; then
+    echo "Starting the Bot ..."
+    pycon $BOT_ARGS
 fi

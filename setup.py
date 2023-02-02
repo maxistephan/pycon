@@ -48,5 +48,4 @@ setup(
     install_requires=install_requires,
     packages=find_packages(exclude=["test", "test.*"]),
     entry_points={"console_scripts": ["pycon = pycon.bin.daemon:main"]},
-    data_files=[("/usr/sbin", ["pycon/bin/pycon-wrapper"])],
 )

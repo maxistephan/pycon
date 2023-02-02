@@ -1,3 +1,10 @@
 #!/bin/bash
 
+set -e
+[ "$DEBUG" = "1" ] && set -x
 
+# Start pycon
+pycon \
+    --token=${PYCON_BOT_TOKEN} \
+    --servers=${PYCON_DISCORD_SERVERS} \
+    --loglevel=${PYCON_LOGLEVEL}
