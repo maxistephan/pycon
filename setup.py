@@ -1,18 +1,10 @@
 #!/usr/bin env python3
 
-import os
 import subprocess
 
 from setuptools import find_packages, setup
-from typing import List
 
-
-install_requires: List[str] = []
 _version: str = f"0.0.0-dirty"
-
-# Read Requirements
-with open("requirements.txt", "r") as pip_requirements:
-    install_requires = pip_requirements.read().splitlines()
 
 try:
     # Check output
@@ -43,9 +35,10 @@ except Exception as e:
 
 setup(
     name="pycon",
-    version=_version,
     description="RCON Communicator Discord Bot",
-    install_requires=install_requires,
+    version=_version,
+    author="Maximilian Stephan",
+    author_email="stephan.maxi@icloud.com",
     packages=find_packages(exclude=["test", "test.*"]),
     entry_points={"console_scripts": ["pycon = pycon.bin.daemon:main"]},
 )

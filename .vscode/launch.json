@@ -1,0 +1,50 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    /*
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}", /// current file
+            "console": "integratedTerminal", /// console output
+            "subProcess": true, /// allow subprocess
+            "redirectOutput": true, /// redirect output into vscode debugger output
+            "stopOnEntry": false, /// don't break on first line at entry file
+            "env": {
+                "FCG__CONF_PATH": "./conf/fcg.json"
+            }
+        },
+        {
+            "name": "DEBUG tcucore-logger",
+            "type": "python",
+            "request": "launch",
+            "program": "tcucore/logger/__main__.py",
+            "console": "integratedTerminal",
+            "redirectOutput": true,
+            "stopOnEntry": false,
+            "justMyCode": false
+        },
+    ]*/
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}", //"main.py",
+            //"program": "can_test/can_transmit.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "GEVENT_SUPPORT": "True"
+            },
+        }
+    ]
+}

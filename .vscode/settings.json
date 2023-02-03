@@ -1,0 +1,44 @@
+{
+    "files.exclude": {
+        "**/.venv*/**": true,
+    },
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    // Linting
+    // FlakeHell
+    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Path": ".tox/lint/bin/flake8helled",
+    // MyPy
+    "python.linting.mypyPath": ".tox/mypy/bin/mypy",
+    "python.linting.mypyEnabled": true,
+    "python.linting.mypyArgs": [
+        "--config-file mypy.ini",
+        "--package src",
+    ],
+    "python.linting.enabled": true,
+    // Black
+    "python.formatting.provider": "black",
+    "python.formatting.blackPath": ".tox/lint/bin/black",
+    "editor.formatOnSave": true,
+    "editor.rulers": [
+        100
+    ],
+    // Isort
+    "isort.args": [
+        "--profile=black",
+    ],
+    "[python]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        },
+    },
+    // Conventional Commits
+    "conventionalCommits.scopes": [
+        "pycon",
+    ],
+    "conventionalCommits.autoCommit": false,
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+}

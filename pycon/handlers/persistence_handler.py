@@ -1,7 +1,14 @@
+"""Persistence helper functions
+
+Description:    Persistence helper functions for pycon
+Author:         Maximilian Stephan
+Disclaimer:     Copyright (c) 2023 Maximilian Stephan,
+                ALL RIGHTS RESERVED - Unauthorized copying of this file,
+                via any medium is strictly prohibited.
+"""
+
 import json
 import logging
-import os
-
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List
@@ -12,61 +19,102 @@ PREFIX_FILE = BASE_PATH / "prefixes.json"
 
 
 class PersistenceMethod(Enum):
+    """Method which persists data
+
+    Args:
+        Enum (str): Enum values represent file suffixes
+    """
     JSON = "json"
     SQLITE = "sqlite"
 
 
 class PersistenceHandler:
+    """Persistence facade to save information"""
     @staticmethod
     def get_auth_channels(method: PersistenceMethod = PersistenceMethod.JSON) -> List[int]:
-        logging.debug(f"Getting channels with method {method.name}")
+        """Return all authorized channel-ids as a List
+
+        Args:
+            method (PersistenceMethod, optional): Method that is preferred to get persistence from.
+                Defaults to PersistenceMethod.JSON.
+
+        Returns:
+            List[int]: All authorized channel-ids as a List
+        """
+        logging.debug("Getting channels with method %s", method.name)
         channels: List[int] = []
         if method == PersistenceMethod.JSON:
             if not CHANNEL_AUTH_FILE.exists():
-                logging.info(f"Channel auth file not found, creating one at {CHANNEL_AUTH_FILE}")
-                with open(CHANNEL_AUTH_FILE, "w") as auth_file:
+                logging.info("Channel auth file not found, creating one at %s", CHANNEL_AUTH_FILE)
+                with open(CHANNEL_AUTH_FILE, "w", encoding="utf-8") as auth_file:
                     auth_file.write(json.dumps(channels))
                 return channels
-            with open(CHANNEL_AUTH_FILE, "r") as auth_file:
+            with open(CHANNEL_AUTH_FILE, "r", encoding="utf-8") as auth_file:
                 content = auth_file.read()
                 channels = json.loads(content) if content else []
         elif method == PersistenceMethod.SQLITE:
-            logging.warn("No SQLITE Implementation yet!")
+            logging.warning("No SQLITE Implementation yet!")
 
         return channels
 
     @staticmethod
     def get_prefixes(method: PersistenceMethod = PersistenceMethod.JSON) -> Dict[int, str]:
-        logging.debug(f"Getting prefixes with method {method.name}")
+        """Get all Servers/Guilds and their prefixes as a Dictionary
+
+        Args:
+            method (PersistenceMethod, optional): Method that is preferred to get persistence from.
+                Defaults to PersistenceMethod.JSON.
+
+        Returns:
+            Dict[int, str]: All Servers/Guilds and their prefixes as a Dictionary
+        """
+        logging.debug("Getting prefixes with method %s", method.name)
         prefixes: Dict[int, str] = {}
         if method == PersistenceMethod.JSON:
             if not PREFIX_FILE.exists():
-                logging.info(f"Server prefix file not found, creating one at {PREFIX_FILE}")
-                with open(PREFIX_FILE, "w") as prefix_file:
+                logging.info("Server prefix file not found, creating one at %s", PREFIX_FILE)
+                with open(PREFIX_FILE, "w", encoding="utf-8") as prefix_file:
                     prefix_file.write(json.dumps(prefixes))
                 return prefixes
-            with open(PREFIX_FILE, "r") as prefix_file:
+            with open(PREFIX_FILE, "r", encoding="utf-8") as prefix_file:
                 content: str = prefix_file.read()
                 prefixes = json.loads(content)
         elif method == PersistenceMethod.SQLITE:
-            logging.warn("No SQLITE Implementation yet!")
+            logging.warning("No SQLITE Implementation yet!")
 
         return prefixes
 
     @staticmethod
     def save_auth_channels(channels: List[int], method: PersistenceMethod = PersistenceMethod.JSON):
+        """Persist all authorized channels
+
+        Args:
+            channels (List[int]): List of channel-ids
+            method (PersistenceMethod, optional): Method that is preferred to persist data.
+                Defaults to PersistenceMethod.JSON.
+        """
         if method == PersistenceMethod.JSON:
-            logging.debug(f"Saving authorized channels to {CHANNEL_AUTH_FILE}")
-            with open(CHANNEL_AUTH_FILE, "w") as auth_file:
+            logging.debug("Saving authorized channels to  %s", CHANNEL_AUTH_FILE)
+            with open(CHANNEL_AUTH_FILE, "w", encoding="utf-8") as auth_file:
                 auth_file.write(json.dumps(channels))
         elif method == PersistenceMethod.SQLITE:
-            logging.warn("No SQLITE Implementation yet!")
+            logging.warning("No SQLITE Implementation yet!")
 
     @staticmethod
-    def save_prefixes(prefix_dict: Dict[int, str], method: PersistenceMethod = PersistenceMethod.JSON):
+    def save_prefixes(
+        prefix_dict: Dict[int, str], method: PersistenceMethod = PersistenceMethod.JSON
+    ):
+        """Persist all Prefixes for each Server/Guild
+
+        Args:
+            prefix_dict (Dict[int, str]): Dictionary object containing Server/Guild IDs as Key and
+                their prefix as value.
+            method (PersistenceMethod, optional): Method that is preferred to persist data.
+                Defaults to PersistenceMethod.JSON.
+        """
         if method == PersistenceMethod.JSON:
-            logging.debug(f"Saving prefixes to {PREFIX_FILE}")
-            with open(PREFIX_FILE, "w") as prefix_file:
+            logging.debug("Saving prefixes to %s", PREFIX_FILE)
+            with open(PREFIX_FILE, "w", encoding="utf-8") as prefix_file:
                 prefix_file.write(json.dumps(prefix_dict))
         elif method == PersistenceMethod.SQLITE:
-            logging.warn("No SQLITE Implementation yet!")
+            logging.warning("No SQLITE Implementation yet!")
