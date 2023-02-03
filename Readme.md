@@ -68,6 +68,23 @@ This project setup to be developed with the VSCode IDE.
 Using Pycharm or other IDEs is, of course, also allowed,
 if the necessary entries to the *.gitignore* file are added.
 
+Pip requirements are defined in requirements.in and requirements-test.in.
+The `pip-compile` command is used to create requirements.txt and requirements-test.txt:
+
+```bash
+# Create requirements.txt
+pip-compile requirements.in
+
+# Create requirements-test.txt
+pip-compile requirements-test.in
+```
+
+Install pip tools for this matter:
+
+```bash
+python3 -m pip install pip-tools
+```
+
 Make sure to use conventional commits in commit messages!
 
 Testing is done via docker, to assure that test results are valid.
