@@ -8,8 +8,6 @@ from typing import Dict, List
 
 BASE_PATH = Path("/opt/pycon")
 CHANNEL_AUTH_FILE = BASE_PATH / "auth_channels.json"
-PYCON_HELP_FILE = BASE_PATH / "help_pycon.txt"
-RCON_HELP_FILE = BASE_PATH / "help_rcon.txt"
 PREFIX_FILE = BASE_PATH / "prefixes.json"
 
 
@@ -54,26 +52,6 @@ class PersistenceHandler:
             logging.warn("No SQLITE Implementation yet!")
 
         return prefixes
-
-    @staticmethod
-    def get_help_text_pycon() -> str:
-        logging.debug(f"Getting help text")
-        if not PYCON_HELP_FILE.exists():
-            logging.warn(f"Pycon help file not found at {CHANNEL_AUTH_FILE}!")
-            return "No help text available yet. Sorry dude"
-        with open(PYCON_HELP_FILE, "r") as help_file:
-            content = help_file.read()
-            return content.decode("UTF-8").strip()
-
-    @staticmethod
-    def get_help_text_rcon() -> str:
-        logging.debug(f"Getting RCON help text")
-        if not CHANNEL_AUTH_FILE.exists():
-            logging.warn(f"RCON help file not found at {CHANNEL_AUTH_FILE}!")
-            return "No help text available yet. Sorry dude"
-        with open(RCON_HELP_FILE, "r") as help_file:
-            content = help_file.read()
-            return help_file.read().decode("UTF-8").strip()
 
     @staticmethod
     def save_auth_channels(channels: List[int], method: PersistenceMethod = PersistenceMethod.JSON):

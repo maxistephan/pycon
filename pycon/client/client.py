@@ -25,6 +25,9 @@ class PyconClient(discord.Client):
         self.__authorized_channels: List[int] = PersistenceHandler.get_auth_channels()
         self.__prefixes: Dict[int, str] = PersistenceHandler.get_prefixes()
         self.__command_handler = CommandHandler()
+        self.__command_handler.add_command(
+            "set-prefix", self._prefix_setter, "Change the command prefix"
+        )
 
         @self.event
         async def on_ready():
@@ -80,4 +83,9 @@ class PyconClient(discord.Client):
         self.clear()
         sys.exit(0)
 
-
+    async def _prefix_setter(self, ctx: CommandContext) -> None:
+        if ctx.args:
+            self.set_prefix_for_server(ctx.message.guild, ctx.args[0])
+            await ctx.message.channel.send(f'Your prefix has been changed to "{ctx.args[0]}"')
+        else:
+            await ctx.message.channel.send("Please enter a prefix!")
