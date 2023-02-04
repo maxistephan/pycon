@@ -169,11 +169,13 @@ class ChannelAuthHandler:
             await ctx.message.channel.send("Alright, your call man")
         else:
             await ctx.message.channel.send(
-                "That ain't valid. Try again: 'y' for yes and 'n' for no."
+                "That ain't valid. Try again: 'y' for yes and 'n' for no (dumbass)."
             )
             return
 
-        await self._open_auths[ctx.message.author.id]["orig_channel"].send("Connected!")
+        await self._open_auths[ctx.message.author.id]["orig_channel"].send(
+            f"{ctx.message.author.mention} successfully connected this channel!"
+        )
         self._authorized_channels[f"{self._open_auths[ctx.message.author.id]['orig_channel'].id}"] \
             ["authorized"] = True
         del self._open_auths[ctx.message.author.id]
