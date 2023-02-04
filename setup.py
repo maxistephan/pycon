@@ -3,27 +3,10 @@
 """Module setup for pycon"""
 
 import subprocess
-import sys
-from pathlib import Path
-from typing import List
 
 from setuptools import find_packages, setup
 
 _VERSION: str = "0.0.0-dirty"
-REQ_FILE: Path = Path("requirements.txt")
-
-
-def get_requirements() -> List[str]:
-    """Collect the requirements for this module"""
-    if not REQ_FILE.exists():
-        try:
-            subprocess.check_output("pip-compile")
-        except subprocess.CalledProcessError:
-            print("pip-tools package is not installed. Use 'python3 -m pip install pip-tools'")
-            sys.exit(1)
-
-    with open(REQ_FILE, "r", encoding="utf-8") as pipfile:
-        return pipfile.readlines()
 
 
 with open("requirements.txt", "r", encoding="utf-8") as req_file:
@@ -64,7 +47,6 @@ setup(
     version=_VERSION,
     author="Maximilian Stephan",
     author_email="stephan.maxi@icloud.com",
-    install_requires=get_requirements(),
     packages=find_packages(exclude=["test", "test.*"]),
     entry_points={"console_scripts": ["pycon = pycon.bin.daemon:main"]},
 )

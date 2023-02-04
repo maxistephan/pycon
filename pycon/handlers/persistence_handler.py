@@ -11,7 +11,7 @@ import json
 import logging
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List
 
 BASE_PATH = Path("/opt/pycon")
 CHANNEL_AUTH_FILE = BASE_PATH / "auth_channels.json"
@@ -31,18 +31,18 @@ class PersistenceMethod(Enum):
 class PersistenceHandler:
     """Persistence facade to save information"""
     @staticmethod
-    def get_auth_channels(method: PersistenceMethod = PersistenceMethod.JSON) -> List[int]:
-        """Return all authorized channel-ids as a List
+    def get_auth_channels(method: PersistenceMethod = PersistenceMethod.JSON) -> Dict[str, Any]:
+        """Return all authorized channel-ids, mapped to their properties as a Dictionary
 
         Args:
             method (PersistenceMethod, optional): Method that is preferred to get persistence from.
                 Defaults to PersistenceMethod.JSON.
 
         Returns:
-            List[int]: All authorized channel-ids as a List
+            Dict[str, Any]: All authorized channel-ids, mapped to their properties as a Dictionary
         """
         logging.debug("Getting channels with method %s", method.name)
-        channels: List[int] = []
+        channels: Dict[str, Any] = {}
         if method == PersistenceMethod.JSON:
             if not CHANNEL_AUTH_FILE.exists():
                 logging.info("Channel auth file not found, creating one at %s", CHANNEL_AUTH_FILE)
@@ -51,7 +51,7 @@ class PersistenceHandler:
                 return channels
             with open(CHANNEL_AUTH_FILE, "r", encoding="utf-8") as auth_file:
                 content = auth_file.read()
-                channels = json.loads(content) if content else []
+                channels = json.loads(content) if content else {}
         elif method == PersistenceMethod.SQLITE:
             logging.warning("No SQLITE Implementation yet!")
 
@@ -85,11 +85,13 @@ class PersistenceHandler:
         return prefixes
 
     @staticmethod
-    def save_auth_channels(channels: List[int], method: PersistenceMethod = PersistenceMethod.JSON):
+    def save_auth_channels(
+        channels: Dict[str, Any], method: PersistenceMethod = PersistenceMethod.JSON
+    ):
         """Persist all authorized channels
 
         Args:
-            channels (List[int]): List of channel-ids
+            channels (Dict[int, Any]): Dict of channel-ids as keys and important data as values
             method (PersistenceMethod, optional): Method that is preferred to persist data.
                 Defaults to PersistenceMethod.JSON.
         """

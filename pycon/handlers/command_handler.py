@@ -9,7 +9,7 @@ Disclaimer:     Copyright (c) 2023 Maximilian Stephan,
 
 import logging
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from discord import Color, Embed, Message
 
@@ -37,6 +37,18 @@ class CommandHandler:
         self.__commands: Dict[str, BotCommand] = {
             "help": BotCommand("help", self.pycon_help_command, "Print this helping text"),
         }
+
+    def add_commands(self, commands: List[Union[Tuple[str, Callable, str], BotCommand]]) -> None:
+        """Add a command that is being picked up in channels
+
+        Args:
+            commands (List[Union[Tuple[str, Callable, str], BotCommand]]): Commands to be added
+        """
+        for command in commands:
+            if isinstance(command, BotCommand):
+                self.add_command(command.name, command.handler, command.help_text)
+            else:
+                self.add_command(command[0], command[1], command[2])
 
     def add_command(self, name: str, handler: Callable, help_text: str) -> None:
         """Add a command that is being picked up in channels
@@ -68,17 +80,6 @@ class CommandHandler:
             logging.debug("Executing command %s %s", ctx.command, ctx.args)
             await command.handler(ctx)
 
-    async def handle_rcon(self, ctx: CommandContext) -> None:
-        """Handle RCON commands.
-        Forwards messages to rcon, if message is received in an authorized channel, regardless the
-        prefix.
-
-        Args:
-            ctx (CommandContext): Context in which the command is used
-        """
-        logging.debug("Handling RCON command %s %s", ctx.command, ctx.args)
-        logging.error("RCON Not implemented yet")
-
     async def pycon_help_command(self, ctx: CommandContext) -> None:
         """Display Help Text
 
@@ -86,24 +87,6 @@ class CommandHandler:
             ctx (CommandContext): Context in which the command is used
         """
         await ctx.message.channel.send(embed=self._pycon_help(ctx.prefix))
-
-    async def rcon_help_command(self, ctx: CommandContext) -> None:
-        """Refactor the rcon help text into an embed
-
-        Args:
-            ctx (CommandContext): Context in which the command is used
-        """
-        logging.debug("Executing tcon help command")
-        await ctx.message.channel.send(embed=self._rcon_help())
-
-    def _rcon_help(self) -> Embed:
-        """Generate an Embed for the RCON help command
-
-        Returns:
-            Embed: Embed with helpful information
-        """
-        logging.error("RCON Not implemented yet")
-        return Embed()
 
     def _pycon_help(self, prefix: str) -> Embed:
         """Generate an Embed for help texts

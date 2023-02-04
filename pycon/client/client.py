@@ -11,11 +11,14 @@ from __future__ import annotations
 
 import logging
 import signal
+import socket
 import sys
 from typing import Any, Callable, Dict, List
 
 import discord
+from rcon.source import Client as RCONClient
 
+from pycon.handlers.auth_handler import ChannelAuthHandler
 from pycon.handlers.command_handler import CommandContext, CommandHandler
 from pycon.handlers.persistence_handler import PersistenceHandler
 
@@ -30,46 +33,76 @@ class PyconClient(discord.Client):
         servers (List[str]): List of guilds
     """
     def __init__(self, token: str, servers: List[str] = None) -> None:
-        intents: discord.Intents = discord.Intents.default()
+        intents = discord.Intents.default()
+        intents.message_content = True
         super().__init__(intents=intents)
         self.__token = token
         self.__servers = servers if servers else []
-        self.__authorized_channels: List[int] = PersistenceHandler.get_auth_channels()
+        self.__authorized_channels: Dict[str, Any] = PersistenceHandler.get_auth_channels()
+        self.__open_auths: Dict[int, Dict[Any]] = {}
         self.__prefixes: Dict[int, str] = PersistenceHandler.get_prefixes()
         self.__command_handler = CommandHandler()
-        self.__command_handler.add_command(
-            "set-prefix", self._prefix_setter, "Change the command prefix"
+        self.__command_handler.add_commands([
+            ("set-prefix", self._prefix_setter, "Change the command prefix"),
+            (
+                "authorize",
+                self.authorize_channel_command,
+                "Authorize a channel to send rcon messages"
+            ),
+            (
+                "deauthorize",
+                self.deauthorize_channel_command,
+                "Deauthorize a channel from sending rcon messages"
+            ),
+        ])
+
+    async def on_ready(self):
+        """Gets Called when the Bot is ready"""
+        logging.info("Logged in as %s with servers %s", self.user, self.__servers)
+        client_id = 930480521186803782
+        invite_link = (
+            "https://discordapp.com/oauth2/authorize?"
+            f"client_id={client_id}&scope=bot"
         )
+        logging.info("Use %s to invite the bot to your channel!", invite_link)
 
-        @self.event
-        async def on_ready():
-            logging.info("Logged in as %s with servers %s", self.user, self.__servers)
 
-        @self.event
-        async def on_message(message: discord.Message):
-            if message.author == self.user:
-                return
+    async def on_message(self, message: discord.Message):
+        """Gets Called on message"""
+        if message.author == self.user:
+            return
+        logging.debug("Got message from %s: %s", message.author, message.content)
+        prefix = self.get_prefix_for_server(message.channel.guild)
+        message.content = message.content.strip()
+        handler: Callable = None
+        auth_channel: Dict[str, Any] = self.__authorized_channels.get(f"{message.channel.id}")
 
-            prefix = self.get_prefix_for_server(message.channel.guild)
-            message.content = message.content.strip()
-            handler: Callable = None
+        if message.content.startswith(prefix):
+            message.content = message.content[len(prefix):]
+            handler = self.__command_handler.handle_command
+        elif auth_channel:
+            if auth_channel["authorized"]:
+                # Set this prefix for rcon commands
+                # prefix = auth_channel["prefix"]
+                handler = self.handle_rcon
+        elif not isinstance(message.channel, discord.channel.DMChannel):
+            # Create entry in channels if not already done
+            self.__authorized_channels[f"{message.channel.id}"] = self._basic_channel_auth()
+        elif self.__open_auths.get(message.author.id):
+            handler = ChannelAuthHandler(
+                self.__open_auths, self.__authorized_channels
+            ).handle_auth
 
-            if message.content.startswith(prefix):
-                message.content = message.content[len(prefix):]
-                handler = self.__command_handler.handle_command
-            elif message.channel.id in self.__authorized_channels:
-                handler = self.__command_handler.handle_rcon
-
-            if handler:
-                content_list: List[str] = message.content.split(" ")
-                command: str = content_list[0] if content_list else ""
-                args: List[str] = content_list[1:] if len(content_list) > 1 else []
-                ctx: CommandContext = CommandContext(prefix, command, args, message)
-                try:
-                    await handler(ctx)
-                except Exception:
-                    ctx.message.channel.send("I'm sorry, something bad happend on my end :(")
-                    raise
+        if not handler is None:
+            content_list: List[str] = message.content.split(" ")
+            command: str = content_list[0] if content_list else ""
+            args: List[str] = content_list[1:] if len(content_list) > 1 else []
+            ctx: CommandContext = CommandContext(prefix, command, args, message)
+            try:
+                await handler(ctx)
+            except Exception:
+                await ctx.message.channel.send("I'm sorry, something bad happend on my end :(")
+                raise
 
     def start_client(self) -> None:
         """Start the Bot and all listeners"""
@@ -90,6 +123,35 @@ class PyconClient(discord.Client):
         else:
             logging.debug("No Server passed. Skipping prefix collection.")
             return DEFAULT_PREFIX
+
+    async def authorize_channel_command(self, ctx: CommandContext):
+        """Authorize a channel.
+
+        Args:
+            ctx (CommandContext): Command Context
+        """
+        if isinstance(ctx.message.channel, discord.channel.DMChannel):
+            await ctx.message.channel.send("You cannot authorize a private channel!")
+            return
+        self.__open_auths[ctx.message.author.id] = None
+        await ChannelAuthHandler(self.__open_auths, self.__authorized_channels).handle_auth(ctx)
+        logging.debug("Started authorizing: %s", self.__open_auths)
+
+    async def deauthorize_channel_command(self, ctx: CommandContext):
+        """Deauthorize a channel.
+
+        Args:
+            ctx (CommandContext): Command Context
+        """
+        if not ctx.message.guild:
+            await ctx.message.channel.send("You cannot deauthorize a private channel!")
+            return
+        channel_cfg = self.__authorized_channels.get(f"{ctx.message.channel.id}")
+        if channel_cfg:
+            channel_cfg["authorized"] = False
+            ctx.message.channel.send("Your channel has been deauthorized.")
+        else:
+            await ctx.message.channel.send("This Channel is not yet authorized.")
 
     def set_prefix_for_server(self, server: discord.client.Guild, prefix: str) -> None:
         """Change the Prefix of a server
@@ -125,6 +187,41 @@ class PyconClient(discord.Client):
         self._cleanup()
         self.clear()
         sys.exit(0)
+
+    async def handle_rcon(self, ctx: CommandContext) -> None:
+        """Handle RCON commands.
+        Forwards messages to rcon, if message is received in an authorized channel, regardless the
+        prefix.
+
+        Args:
+            ctx (CommandContext): Context in which the command is used
+        """
+        logging.debug("Handling RCON command %s %s", ctx.command, ctx.args)
+        creds = self.__authorized_channels[f"{ctx.message.channel.id}"]
+        if creds["type"] == "Minecraft":
+            ctx.prefix = "/"
+        try:
+            with RCONClient(creds["rcon"], creds["port"], passwd=creds["password"]) as rcon_client:
+                response = rcon_client.run(f"{ctx.prefix}{ctx.command}", *ctx.args)
+                if response:
+                    await ctx.message.channel.send(response)
+        except (ConnectionRefusedError, socket.gaierror) as err:
+            logging.error("Got connection refused when connecting to rcon: %s", err)
+            await ctx.message.channel.send("Connection Failed. Try authorizing this channel again.")
+        except discord.errors.HTTPException as err:
+            logging.error("Got HTTP Error: %s", err)
+            await ctx.message.channel.send(
+                "The requested Message is too long for Discord. Must be 2000 or fewer in length!"
+            )
+
+    def _basic_channel_auth(self) -> Dict[str, Any]:
+        return {
+            "authorized": False,
+            "rcon": "",
+            "port": "",
+            "password": "",
+            "type": "",
+        }
 
     async def _prefix_setter(self, ctx: CommandContext) -> None:
         if ctx.args:
