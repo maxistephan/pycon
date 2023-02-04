@@ -5,6 +5,6 @@ set -e
 
 # Start pycon
 pycon \
-    --token=${PYCON_BOT_TOKEN} \
-    --servers=${PYCON_DISCORD_SERVERS} \
-    --loglevel=${PYCON_LOGLEVEL}
+    ${PYCON_BOT_TOKEN:+--token=${PYCON_BOT_TOKEN}} \
+    ${PYCON_DISCORD_SERVERS:+--servers=${PYCON_DISCORD_SERVERS}} \
+    ${PYCON_LOGLEVEL:+--loglevel=${PYCON_LOGLEVEL}}

@@ -38,6 +38,7 @@ class SystemHandler:
         logging.warning("Auhtorized users: %s", auth_users)
         if not ctx.message.author.id in auth_users:
             await ctx.message.channel.send("You don't have permissions for this command.")
+            return
         if ctx.command == "restart":
             await self.command_restart(ctx)
 
@@ -53,14 +54,17 @@ class SystemHandler:
             await ctx.message.channel.send("This channel isn't authorized yet.")
             return
         server_type: str = server_config["type"].strip().lower()
-        process = subprocess.Popen(
+        process = subprocess.run(
             f"systemctl restart {server_type}",
             shell=True,
             stderr=subprocess.PIPE,
             stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            check=False,
         )
         if process.returncode != 0:
             await ctx.message.channel.send("That didnt work, sorry pal")
+            logging.error("Error in sys command with return code: %s", process.returncode)
         else:
             await ctx.message.channel.send("Server is restarting")
 
