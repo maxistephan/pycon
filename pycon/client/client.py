@@ -225,6 +225,10 @@ class PyconClient(discord.Client):
         creds = self.__authorized_channels[f"{ctx.message.channel.id}"]
         if creds["type"] == "Minecraft":
             ctx.prefix = "/"
+        if (ctx.command.lower == "stop" and
+            not ctx.message.author.id in SystemHandler.get_authorized_users()):
+            await ctx.message.channel.send("Nah bro u aint stopping that shit now dawg")
+            return
         try:
             with RCONClient(creds["rcon"], creds["port"], passwd=creds["password"]) as rcon_client:
                 response = rcon_client.run(f"{ctx.prefix}{ctx.command}", *ctx.args)
