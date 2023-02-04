@@ -35,7 +35,7 @@ class SystemHandler:
             ctx.args,
         )
         auth_users: List[int] = SystemHandler.get_authorized_users()
-        logging.warning("Auhtorized users: %s", auth_users)
+        logging.warning("Authorized users: %s", auth_users)
         if not ctx.message.author.id in auth_users:
             await ctx.message.channel.send("You don't have permissions for this command.")
             return
@@ -55,6 +55,7 @@ class SystemHandler:
             return
         server_type: str = server_config["type"].strip().lower()
         try:
+            await ctx.message.channel.send("Trying to restart server ...")
             process_out = subprocess.check_output(
                 f"systemctl restart {server_type}",
                 shell=True,
@@ -64,7 +65,7 @@ class SystemHandler:
             await ctx.message.channel.send("That didnt work, sorry pal")
             logging.error("Error in sys comman: %s", err)
             return
-        await ctx.message.channel.send("Server is restarting")
+        await ctx.message.channel.send("Server is restarting. This could take a minute.")
 
     @staticmethod
     def get_authorized_users() -> List[int]:
