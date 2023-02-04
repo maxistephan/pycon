@@ -54,19 +54,17 @@ class SystemHandler:
             await ctx.message.channel.send("This channel isn't authorized yet.")
             return
         server_type: str = server_config["type"].strip().lower()
-        process = subprocess.run(
-            f"systemctl restart {server_type}",
-            shell=True,
-            stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-            check=False,
-        )
-        if process.returncode != 0:
+        try:
+            process_out = subprocess.check_output(
+                f"systemctl restart {server_type}",
+                shell=True,
+            )
+            logging.debug("Process finished: %s", process_out)
+        except subprocess.CalledProcessError as err:
             await ctx.message.channel.send("That didnt work, sorry pal")
-            logging.error("Error in sys command with return code: %s", process.returncode)
-        else:
-            await ctx.message.channel.send("Server is restarting")
+            logging.error("Error in sys comman: %s", err)
+            return
+        await ctx.message.channel.send("Server is restarting")
 
     @staticmethod
     def get_authorized_users() -> List[int]:
