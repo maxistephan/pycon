@@ -225,8 +225,10 @@ class PyconClient(discord.Client):
         creds = self.__authorized_channels[f"{ctx.message.channel.id}"]
         if creds["type"] == "Minecraft":
             ctx.prefix = "/"
-        if (ctx.command.lower == "stop" and
-            not ctx.message.author.id in SystemHandler.get_authorized_users()):
+        if (
+            "stop" in ctx.command.lower() and
+            not ctx.message.author.id in SystemHandler.get_authorized_users()
+        ):
             await ctx.message.channel.send("Nah bro u aint stopping that shit now dawg")
             return
         try:
@@ -236,7 +238,7 @@ class PyconClient(discord.Client):
                     await ctx.message.channel.send(response)
         except (ConnectionRefusedError, socket.gaierror) as err:
             logging.error("Got connection refused when connecting to rcon: %s", err)
-            await ctx.message.channel.send("Connection Failed. Try authorizing this channel again.")
+            await ctx.message.channel.send("Connection Failed. Is the server running?")
         except discord.errors.HTTPException as err:
             logging.error("Got HTTP Error: %s", err)
             await ctx.message.channel.send(
