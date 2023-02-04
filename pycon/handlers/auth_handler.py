@@ -157,7 +157,7 @@ class ChannelAuthHandler:
             ]
             try:
                 with RCONClient(creds["rcon"], creds["port"], passwd=creds["password"]):
-                    pass
+                    await ctx.message.channel.send("Connection successfull!")
             except (ConnectionRefusedError, socket.gaierror) as err:
                 logging.error("Couldn't connect to rcon: %s", err)
                 await ctx.message.channel.send(

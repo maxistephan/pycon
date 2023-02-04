@@ -19,10 +19,11 @@ import discord
 from rcon.source import Client as RCONClient
 
 from pycon.handlers.auth_handler import ChannelAuthHandler
-from pycon.handlers.command_handler import CommandContext, CommandHandler
+from pycon.handlers.command_handler import CommandAuthStage, CommandContext, CommandHandler
 from pycon.handlers.persistence_handler import PersistenceHandler
+from pycon.handlers.system_handler import SystemHandler
 
-DEFAULT_PREFIX = "$"
+DEFAULT_PREFIX = "r!"
 
 
 class PyconClient(discord.Client):
@@ -43,16 +44,29 @@ class PyconClient(discord.Client):
         self.__prefixes: Dict[int, str] = PersistenceHandler.get_prefixes()
         self.__command_handler = CommandHandler()
         self.__command_handler.add_commands([
-            ("set-prefix", self._prefix_setter, "Change the command prefix"),
+            (
+                "set-prefix",
+                self._prefix_setter,
+                "Change the command prefix",
+                CommandAuthStage.HITMAN
+            ),
             (
                 "authorize",
                 self.authorize_channel_command,
-                "Authorize a channel to send rcon messages"
+                "Authorize a channel to send rcon messages",
+                CommandAuthStage.HITMAN
             ),
             (
                 "deauthorize",
                 self.deauthorize_channel_command,
-                "Deauthorize a channel from sending rcon messages"
+                "Deauthorize a channel from sending rcon messages",
+                CommandAuthStage.HITMAN
+            ),
+            (
+                "restart",
+                SystemHandler(self.__authorized_channels).handle_sys_command,
+                "Restart the authorized server of this channel",
+                CommandAuthStage.BOSS
             ),
         ])
 
@@ -65,13 +79,24 @@ class PyconClient(discord.Client):
             f"client_id={client_id}&scope=bot"
         )
         logging.info("Use %s to invite the bot to your channel!", invite_link)
+        await self.change_presence(
+            activity=discord.Activity(
+                type=discord.ActivityType.playing,
+                name=f"with yo mamas ballz lol | {DEFAULT_PREFIX}help"
+            )
+        )
 
 
     async def on_message(self, message: discord.Message):
         """Gets Called on message"""
         if message.author == self.user:
             return
-        logging.debug("Got message from %s: %s", message.author, message.content)
+        logging.debug(
+            "Got message from %s (%d): %s",
+            message.author,
+            message.author.id,
+            message.content
+        )
         prefix = self.get_prefix_for_server(message.channel.guild)
         message.content = message.content.strip()
         handler: Callable = None
@@ -85,7 +110,7 @@ class PyconClient(discord.Client):
                 # Set this prefix for rcon commands
                 # prefix = auth_channel["prefix"]
                 handler = self.handle_rcon
-        elif not isinstance(message.channel, discord.channel.DMChannel):
+        elif not isinstance(message.channel, discord.channel.DMChannel) and not auth_channel:
             # Create entry in channels if not already done
             self.__authorized_channels[f"{message.channel.id}"] = self._basic_channel_auth()
         elif self.__open_auths.get(message.author.id):

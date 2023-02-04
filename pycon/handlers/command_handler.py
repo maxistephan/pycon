@@ -9,9 +9,17 @@ Disclaimer:     Copyright (c) 2023 Maximilian Stephan,
 
 import logging
 from dataclasses import dataclass
+from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from discord import Color, Embed, Message
+
+
+class CommandAuthStage(Enum):
+    """Authorization Level for a command to be executed."""
+    CROOK = 1
+    HITMAN = 2
+    BOSS = 3
 
 
 @dataclass
@@ -20,6 +28,7 @@ class BotCommand:
     name: str
     handler: Callable
     help_text: str
+    auth_stage: CommandAuthStage
 
 
 @dataclass
@@ -35,22 +44,34 @@ class CommandHandler:
     """Handling for bot and rcon commands in text channels."""
     def __init__(self) -> None:
         self.__commands: Dict[str, BotCommand] = {
-            "help": BotCommand("help", self.pycon_help_command, "Print this helping text"),
+            "help": BotCommand(
+                "help",
+                self.pycon_help_command,
+                "Print this helping text",
+                CommandAuthStage.CROOK
+            ),
         }
 
-    def add_commands(self, commands: List[Union[Tuple[str, Callable, str], BotCommand]]) -> None:
+    def add_commands(
+        self,
+        commands: List[Union[Tuple[str, Callable, str, CommandAuthStage], BotCommand]]
+    ) -> None:
         """Add a command that is being picked up in channels
 
         Args:
-            commands (List[Union[Tuple[str, Callable, str], BotCommand]]): Commands to be added
+            commands (List[Union[Tuple[str, Callable, str, CommandAuthStage], BotCommand]]):
+                Commands to be added
         """
         for command in commands:
             if isinstance(command, BotCommand):
-                self.add_command(command.name, command.handler, command.help_text)
+                self.add_command(command)
             else:
-                self.add_command(command[0], command[1], command[2])
+                self.add_command(BotCommand(command[0], command[1], command[2], command[3]))
 
-    def add_command(self, name: str, handler: Callable, help_text: str) -> None:
+    def add_command(
+        self,
+        bot_command: BotCommand,
+    ) -> None:
         """Add a command that is being picked up in channels
 
         Args:
@@ -59,7 +80,7 @@ class CommandHandler:
                                 ctx: CommandContext
             help_text (str): Helpful text that is being displayed when using the "$help" command
         """
-        self.__commands[name] = BotCommand(name, handler, help_text)
+        self.__commands[bot_command.name] = bot_command
 
     async def handle_command(self, ctx: CommandContext) -> None:
         """Handle the command in a text channel.
@@ -104,6 +125,9 @@ class CommandHandler:
             color=Color.green()
         )
         for command in self.__commands.values():
-            embed.add_field(name=f"{prefix}{command.name}", value=command.help_text, inline=False)
+            embed.add_field(
+                name=f"{prefix}{command.name}",
+                value=f"{command.help_text} (Auth Stage: {command.auth_stage.value})", inline=False
+            )
 
         return embed

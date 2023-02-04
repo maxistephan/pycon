@@ -16,6 +16,7 @@ from typing import Any, Dict, List
 BASE_PATH = Path("/opt/pycon")
 CHANNEL_AUTH_FILE = BASE_PATH / "auth_channels.json"
 PREFIX_FILE = BASE_PATH / "prefixes.json"
+SYS_AUTH_FILE = BASE_PATH / "authorized_users.json"
 
 
 class PersistenceMethod(Enum):
@@ -120,3 +121,28 @@ class PersistenceHandler:
                 prefix_file.write(json.dumps(prefix_dict))
         elif method == PersistenceMethod.SQLITE:
             logging.warning("No SQLITE Implementation yet!")
+
+    @staticmethod
+    def get_authorized_users(method: PersistenceMethod = PersistenceMethod.JSON) -> List[int]:
+        """Get a list of BOSS users
+
+        Args:
+            method (PersistenceMethod, optional): Method of persistence.
+                Defaults to PersistenceMethod.JSON.
+
+        Returns:
+            List[int]: List of all users with auth level "BOSS"
+        """
+        auths: List[int] = []
+        if method == PersistenceMethod.JSON:
+            if not SYS_AUTH_FILE.exists():
+                logging.info("Sys auth file not found, creating one at %s", SYS_AUTH_FILE)
+                with open(SYS_AUTH_FILE, "w", encoding="utf-8") as sys_auth:
+                    sys_auth.write(json.dumps(auths))
+                return auths
+            with open(SYS_AUTH_FILE, "r", encoding="utf-8") as sys_auth:
+                content: str = sys_auth.read()
+                auths = json.loads(content)
+        elif method == PersistenceMethod.SQLITE:
+            logging.warning("No SQLITE Implementation yet!")
+        return auths
