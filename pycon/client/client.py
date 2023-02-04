@@ -78,7 +78,7 @@ class PyconClient(discord.Client):
             "https://discordapp.com/oauth2/authorize?"
             f"client_id={client_id}&scope=bot"
         )
-        logging.info("Use %s to invite the bot to your channel!", invite_link)
+        logging.info("Use %s to invite the bot to your server!", invite_link)
         await self.change_presence(
             activity=discord.Activity(
                 type=discord.ActivityType.playing,
