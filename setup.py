@@ -6,7 +6,7 @@ import subprocess
 
 from setuptools import find_packages, setup
 
-_VERSION: str = "0.0.0-dirty"
+_VERSION: str = "0.0.0"
 
 
 with open("requirements.txt", "r", encoding="utf-8") as req_file:
@@ -27,13 +27,8 @@ try:
     TAGS = tags.strip().decode("UTF-8")
     LAST_TAG = last_tag.strip().decode("UTF-8")
 
-    # Set Version
-    if LAST_COMMIT != LAST_TAG_COMMIT:
-        # Last Tag's Version + dirty flag
-        _VERSION = f"{LAST_TAG}-dirty"
-    else:
-        # Version is Tag
-        _VERSION = LAST_TAG
+    # Set Version to tag
+    _VERSION = LAST_TAG
 except subprocess.CalledProcessError:
     # Version is not set
     print(f"WARNING: No Version Set! Using default: {_VERSION}")
