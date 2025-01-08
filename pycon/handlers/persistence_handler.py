@@ -9,11 +9,12 @@ Disclaimer:     Copyright (c) 2023 Maximilian Stephan,
 
 import json
 import logging
+import os
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List
 
-BASE_PATH = Path("/opt/pycon")
+BASE_PATH = Path.home() / ".local/share/pycon"
 CHANNEL_AUTH_FILE = BASE_PATH / "auth_channels.json"
 PREFIX_FILE = BASE_PATH / "prefixes.json"
 SYS_AUTH_FILE = BASE_PATH / "authorized_users.json"
@@ -44,6 +45,8 @@ class PersistenceHandler:
         """
         logging.debug("Getting channels with method %s", method.name)
         channels: Dict[str, Any] = {}
+        if not BASE_PATH.exists():
+            os.makedirs(BASE_PATH)
         if method == PersistenceMethod.JSON:
             if not CHANNEL_AUTH_FILE.exists():
                 logging.info("Channel auth file not found, creating one at %s", CHANNEL_AUTH_FILE)

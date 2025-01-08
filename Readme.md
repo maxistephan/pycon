@@ -1,31 +1,80 @@
-# PYCON
+# `PYCON`
 
-Discord Bot for RCON Communication implemented in Python.
+> Discord Bot for RCON Communication implemented in Python.
 
-## Installing
+## Installation
 
-Installing the Bot is rather easy, since it is Python modulized:
+This bot can be installed as a python pip package.
+
+The `run.sh` script contains the `--install` option to
+setup a virtualenv and install the bot:
 
 ```bash
 # Clone the sources
 git clone https://github.com/maxistephan/pycon.git
 cd pycon
 
-# Virtual Environment Setup (skip if unwanted)
-sudo apt update && \
-    apt install -y --no-install-recommends \
-    python3.11 python3.11-dev python3.11-pip python3.11-venv
-python3.11 -m venv .venv
-. .venv/bin/activate
+# Insatll pycon
+./run.sh --install
 
-# Install Dependencies and Project
+# Start virtual environment (mandatory since 3.11)
+python3.11 -m venv .venv
+source .venv/bin/activate
+```
+
+Or do it manually:
+
+```bash
+# Clone the sources
+git clone https://github.com/maxistephan/pycon.git
+cd pycon
+
+# Install python dependencies
+sudo apt install \
+    python3.11 \
+    python3.11-dev \
+    python3.11-pip \
+    python3.11-venv
+
+# Start virtual environment (mandatory since 3.11)
+python3.11 -m venv .venv
+source .venv/bin/activate
+
+# Install Dependencies
 pip3 install -r requirements.txt
+
+# Install pycon
 pip3 install -e .
 ```
 
-## Usage
+## Systemd Integration
 
-To get to know about the CLI usage, type this command after installation:
+Currently, pycon only features a simple systemd service:
+
+```bash
+# create environment
+cat << EOF > <THIS_DIRECTORY>/default.env
+PYCON_BOT_TOKEN=tokenfromdiscorddevpage
+EOF
+
+# This creates a file called "default.env" in this directory
+# with this content:
+#   PYCON_BOT_TOKEN=tokenfromdiscorddevpage
+#
+# Change <THIS_DIRECTORY> to the path of this directory, e.g.
+# /home/user/pycon/default.env
+
+# install service
+./run.sh --daemonize
+
+# run service
+sudo systemctl start pycon
+
+# autostart service at boot
+sudo systemctl enable pycon
+```
+
+## Usage
 
 ```bash
 pycon --help
@@ -33,40 +82,30 @@ pycon --help
 
 ## Testing
 
-Running tests is as easy as using the project itself:
+Tests aren't implemented yet, but in the future the bot will be
+tested with the run.sh wrapper as well:
 
 ```bash
+# Default test
 ./run.sh --test
-```
 
-To use the docker environment in tests, append the *--docker* option:
-
-```bash
+# Test in docker container
 ./run.sh --test --docker
-```
 
-And to use a specific user in the Docker test environment, the *-g* and *-u* options may help:
-
-```bash
+# Test in docker container as current user
 ./run.sh --docker -u $(id -u) -g $(id -g) --test
 ```
 
-**NOTE:** By default, the user ID and Group are the ones from the user starting the script.
-
-**NOTE:** There are currently no tests implemented!
-
 ## Important Notice
 
-This Project is set to be in a private repository.
-Leaks about source code snippets are completely irrelevant.
 The only important part is to keep the **Bot Token** secure,
 since the Token is used to control the Bot.
 
-## Developer Info
+The run.sh script has the option to implement a `default.env` file
+with custom env variables, that are sourced by the systemd service as
+well.
 
-This project setup to be developed with the VSCode IDE.
-Using Pycharm or other IDEs is, of course, also allowed,
-if the necessary entries to the *.gitignore* file are added.
+## Developer Info
 
 Pip requirements are defined in requirements.in and requirements-test.in.
 The `pip-compile` command is used to create requirements.txt and requirements-test.txt:
@@ -85,10 +124,6 @@ Install pip tools for this matter:
 python3 -m pip install pip-tools
 ```
 
-Make sure to use conventional commits in commit messages!
+Testing will be done via docker to minimize dependency issues.
 
-Testing is done via docker, to assure that test results are valid.
-
-Have fun creating this Bot with me!
-
-~ Maximilian Stephan
+Have fun developing this Bot with me!

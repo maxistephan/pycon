@@ -1,0 +1,11 @@
+[Unit]
+Description=Pycon RCON Communicator built in Python
+After=network.target
+
+[Service]
+Type=forking
+EnvironmentFile=__PYCON_INSTALL_DIR__/default.env
+ExecStart=__PYCON_INSTALL_DIR__/run.sh --run-bot
+
+[Install]
+WantedBy=multi-user.target
